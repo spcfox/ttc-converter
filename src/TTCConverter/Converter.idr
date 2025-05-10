@@ -8,7 +8,7 @@ import Core.Metadata.JSON
 import Idris.Syntax.JSON
 import TTCConverter.Config
 import TTCConverter.Error
-import TTCConverter.JSON.ErasingJSON
+import TTCConverter.JSON.Encoder.Erasing
 
 import System
 
@@ -20,7 +20,7 @@ export
 mkConverter : ToJSON a => (String -> Core a) -> Converter
 mkConverter read erase input output
   = liftIO $ coreRun (read input) (pure . Left . CoreError) $ \val =>
-      do Right () <- writeJSONvia (ErasingJSON erase) output val
+      do Right () <- writeJSON (Erasing erase) output val
            | Left err => pure $ Left $ FileError err
          pure $ Right ()
 

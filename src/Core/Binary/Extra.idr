@@ -58,5 +58,5 @@ readTTC file = do
   readTTCFile file bin
 
 export
-writeJSONvia : (0 v : Type) -> Encoder v => HasIO io => ToJSON a => String -> a -> io (Either FileError ())
-writeJSONvia v file val = writeFile file (encodeVia v val)
+writeJSON : Encoder v -> HasIO io => ToJSON a => String -> a -> io (Either FileError ())
+writeJSON _ file val = writeFile file (encodeVia v val)
