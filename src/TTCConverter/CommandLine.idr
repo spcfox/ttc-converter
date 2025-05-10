@@ -1,5 +1,6 @@
 module TTCConverter.CommandLine
 
+import Data.List
 import System
 import System.Path
 import System.GetOpts
@@ -14,18 +15,21 @@ record PreConfig where
   input  : Maybe String
   output : Maybe String
   format : Maybe TTCFormat
+  erase  : List EraseTag
 
 initPreConfig : PreConfig
-initPreConfig = MkPreConfig Nothing Nothing Nothing
+initPreConfig = MkPreConfig Nothing Nothing Nothing []
 
 data Option = Input String
             | Output String
             | Format TTCFormat
+            | Erase EraseTag
 
 applyOption : Option -> PreConfig -> PreConfig
 applyOption (Input fname)  = { input  := Just fname }
 applyOption (Output fname) = { output := Just fname }
 applyOption (Format fmt)   = { format := Just fmt }
+applyOption (Erase tag)    = { erase  $= (tag ::) }
 
 createPreConfig : List Option -> PreConfig
 createPreConfig = foldl (flip applyOption) initPreConfig
@@ -46,14 +50,18 @@ checkConfig config = do
   let format = case config.format of
                   Nothing => predictFormat input
                   Just f  => f
-  pure $ MkConfig input output format
+  let erase = nub config.erase
+  pure $ MkConfig input output format erase
 
 descs : List $ OptDescr Option
 descs =
-  [ MkOpt ['i'] ["input"]  (ReqArg Input  "<file>") "Input file name"
-  , MkOpt ['o'] ["output"] (ReqArg Output "<file>") "Output file name"
-  , MkOpt []    ["ttc"]    (NoArg $ Format TTC)     "TTC format"
-  , MkOpt []    ["ttm"]    (NoArg $ Format TTM)     "TTM format"
+  [ MkOpt ['i'] ["input"]    (ReqArg Input  "<file>")  "Input file name"
+  , MkOpt ['o'] ["output"]   (ReqArg Output "<file>")  "Output file name"
+  , MkOpt []    ["ttc"]      (NoArg $ Format TTC)      "TTC format"
+  , MkOpt []    ["ttm"]      (NoArg $ Format TTM)      "TTM format"
+  , MkOpt []    ["erase-fc"] (NoArg $ Erase FCTag)     "Do not write FC in JSON"
+  , MkOpt []    ["erase-mn"] (NoArg $ Erase MNTag)     "Do not write MN indexes in JSON"
+  , MkOpt []    ["erase-bf"] (NoArg $ Erase BufferTag) "Do not write buffer data in JSON"
   ]
 
 export

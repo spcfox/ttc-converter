@@ -15,7 +15,7 @@ import TTCConverter.Utils
 
 export
 ToJSON Buffer where
-  toJSON = toJSON . unsafePerformIO . bufferData'
+  toJSON = jerase BufferTag . unsafePerformIO . bufferData'
 
 export
 ToJSON SizeChange where

@@ -5,11 +5,14 @@ import Core.Core
 import Core.Options
 import public Core.TTC
 
+import public JSON.Encoder
 import public JSON.ToJSON
 
 import public Core.Binary.JSON
 
 import System.File
+
+%hide Text.ParseError.Bin
 
 export
 readTTCFile : TTC extra => String -> Ref Bin Binary -> Core (TTCFile extra)
@@ -55,9 +58,5 @@ readTTC file = do
   readTTCFile file bin
 
 export
-writeJSON : HasIO io => ToJSON a => String -> a -> io (Either FileError ())
-writeJSON file val = writeFile file (encode val)
-
-export
-writeTTCIntoJSON : HasIO io => ToJSON extra => String -> TTCFile extra -> io (Either FileError ())
-writeTTCIntoJSON = writeJSON
+writeJSONvia : (0 v : Type) -> Encoder v => HasIO io => ToJSON a => String -> a -> io (Either FileError ())
+writeJSONvia v file val = writeFile file (encodeVia v val)

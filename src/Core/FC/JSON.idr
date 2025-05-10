@@ -20,13 +20,13 @@ ToJSON Core.FC.OriginDesc where
 export
 ToJSON Core.FC.FC where
   toJSON (MkFC file start end)
-    = jconstructor "MkFC" [ jpair "file" file
-                          , jpair "start" start
-                          , jpair "end" end]
+    = erase FCTag $ jconstructor "MkFC" [ jpair "file" file
+                                        , jpair "start" start
+                                        , jpair "end" end]
   toJSON (MkVirtualFC file start end)
-    = jconstructor "MkVirtualFC" [ jpair "file" file
-                                 , jpair "start" start
-                                 , jpair "end" end]
+    = erase FCTag $ jconstructor "MkVirtualFC" [ jpair "file" file
+                                               , jpair "start" start
+                                               , jpair "end" end]
   toJSON EmptyFC = jconstructor "EmptyFC" []
 
 %runElab derive "Core.FC.WithFC" [ToJSON]

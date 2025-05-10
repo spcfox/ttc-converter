@@ -24,8 +24,8 @@ ToJSON Name where
                       , jpair "name"      nm ]
   toJSON (UN un) = jconstructor "UN" [jpair "value"     un ]
   toJSON (MN str i)
-    = jconstructor "MN" [ jpair "str" str
-                        , jpair "i"   i ]
+    = jconstructor "MN" [ jpair        "str" str
+                        , jepair MNTag "i"   i ]
   toJSON (PV nm i)
     = jconstructor "PV" [ jpair "name"  nm
                         , jpair "index" i ]
