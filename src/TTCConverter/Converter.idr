@@ -1,0 +1,41 @@
+module TTCConverter.Converter
+
+import Idris.Syntax.TTC
+
+import Core.Binary.Extra
+import Core.Metadata.Extra
+import Core.Metadata.JSON
+import Idris.Syntax.JSON
+import TTCConverter.Config
+import TTCConverter.Error
+
+import System
+
+public export
+0 Converter : Type
+Converter = forall io. HasIO io => (input, output : String) -> io (Either ConverterError ())
+
+export
+mkConverter : ToJSON a => (String -> Core a) -> Converter
+mkConverter read input output
+  = liftIO $ coreRun (read input) (pure . Left . CoreError) $ \val =>
+      do Right () <- writeJSON output val
+           | Left err => pure $ Left $ FileError err
+         pure $ Right ()
+
+export
+convertTTC : Converter
+convertTTC = mkConverter $ readTTC {extra=SyntaxInfo}
+
+export
+convertTTM : Converter
+convertTTM = mkConverter readTTM
+
+export
+convert : HasIO io => Config -> io (Either ConverterError ())
+convert (MkConfig input output format) = do
+  converter <- case format of TTC => pure convertTTC
+                              TTM => pure convertTTM
+                              Unknown ext => do -- TODO: Show warning
+                                                pure convertTTC
+  converter input output

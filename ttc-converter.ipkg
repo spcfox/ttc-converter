@@ -1,0 +1,44 @@
+package ttc-converter
+
+version = 0.0.1
+
+authors = "Viktor Yudov"
+
+brief = "Tool for converting `.ttc` files to JSON format"
+
+license = "CC0-1.0"
+
+sourcedir = "src"
+
+depends = idris2
+        , contrib
+        , getopts
+        , json
+
+main = TTCConverter.Main
+executable = "ttc-converter"
+
+modules = TTImp.TTImp.JSON
+        , TTCConverter.Utils
+        , TTCConverter.Error
+        , TTCConverter.Converter
+        , TTCConverter.Config
+        , TTCConverter.CommandLine
+        , TTCConverter.IO
+        , Idris.Syntax.JSON
+        , Core.FC.JSON
+        , Core.CompileExpr.JSON
+        , Core.TT.JSON
+        , Core.TT.Primitive.JSON
+        , Core.TT.Term.JSON
+        , Core.JSON
+        , Core.CaseTree.JSON
+        , Core.Metadata.JSON
+        , Core.Metadata.Extra
+        , Core.Options.JSON
+        , Core.Context.JSON
+        , Core.Env.JSON
+        , Core.Name.JSON
+        , Core.Binary.JSON
+        , Core.Binary.Extra
+        , Prims.JSON

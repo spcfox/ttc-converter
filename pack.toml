@@ -1,0 +1,10 @@
+[custom.all.ttc-converter]
+type = "local"
+path = "."
+ipkg = "ttc-converter.ipkg"
+test = "test/test.ipkg"
+
+[custom.all.ttc-converter-test]
+type = "local"
+path = "test"
+ipkg = "test.ipkg"
