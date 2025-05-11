@@ -24,7 +24,8 @@ data TTCFormat = TTC | TTM | Unknown (Maybe String)
 public export
 record Config where
   constructor MkConfig
-  input : String
+  input  : String
   output : String
   format : TTCFormat
-  erase : List EraseTag
+  erase  : List EraseTag
+  jq     : Bool

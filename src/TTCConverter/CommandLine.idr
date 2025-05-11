@@ -16,20 +16,23 @@ record PreConfig where
   output : Maybe String
   format : Maybe TTCFormat
   erase  : List EraseTag
+  jq     : Bool
 
 initPreConfig : PreConfig
-initPreConfig = MkPreConfig Nothing Nothing Nothing []
+initPreConfig = MkPreConfig Nothing Nothing Nothing [] False
 
 data Option = Input String
             | Output String
             | Format TTCFormat
             | Erase EraseTag
+            | JQ
 
 applyOption : Option -> PreConfig -> PreConfig
 applyOption (Input fname)  = { input  := Just fname }
 applyOption (Output fname) = { output := Just fname }
 applyOption (Format fmt)   = { format := Just fmt }
 applyOption (Erase tag)    = { erase  $= (tag ::) }
+applyOption JQ             = { jq     := True }
 
 createPreConfig : List Option -> PreConfig
 createPreConfig = foldl (flip applyOption) initPreConfig
@@ -51,7 +54,7 @@ checkConfig config = do
                   Nothing => predictFormat input
                   Just f  => f
   let erase = nub config.erase
-  pure $ MkConfig input output format erase
+  pure $ MkConfig input output format erase config.jq
 
 descs : List $ OptDescr Option
 descs =
@@ -62,6 +65,7 @@ descs =
   , MkOpt []    ["erase-fc"] (NoArg $ Erase FCTag)     "Do not write FC in JSON"
   , MkOpt []    ["erase-mn"] (NoArg $ Erase MNTag)     "Do not write MN indexes in JSON"
   , MkOpt []    ["erase-bf"] (NoArg $ Erase BufferTag) "Do not write buffer data in JSON"
+  , MkOpt []    ["jq"]       (NoArg $ JQ)              "Use jq to format JSON"
   ]
 
 export

@@ -8,6 +8,7 @@ import Core.Metadata.JSON
 import Idris.Syntax.JSON
 import TTCConverter.Config
 import TTCConverter.Error
+import TTCConverter.IO
 import TTCConverter.JSON.Encoder.Erasing
 
 import System
@@ -34,9 +35,13 @@ convertTTM = mkConverter readTTM
 
 export
 convert : HasIO io => Config -> io (Either ConverterError ())
-convert (MkConfig input output format erase) = do
+convert (MkConfig input output format erase jq) = do
   converter <- case format of TTC => pure convertTTC
                               TTM => pure convertTTM
                               Unknown ext => do -- TODO: Show warning
                                                 pure convertTTC
-  converter (map show erase) input output
+  Right () : Either _ () <- converter (map show erase) input output
+    | Left err => pure $ Left err
+  if jq
+     then formatJSON output
+     else pure $ Right ()
