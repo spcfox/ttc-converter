@@ -10,32 +10,41 @@ import public TTCConverter.Error
 
 %default total
 
-record PreConfig where
-  constructor MkPreConfig
+record Options where
+  constructor MkOptions
+  help   : Bool
   input  : Maybe String
   output : Maybe String
   format : Maybe TTCFormat
   erase  : List EraseTag
   jq     : Bool
 
-initPreConfig : PreConfig
-initPreConfig = MkPreConfig Nothing Nothing Nothing [] False
+initOptions : Options
+initOptions = MkOptions
+  { help   = False
+  , input  = Nothing
+  , output = Nothing
+  , format = Nothing
+  , erase  = []
+  , jq     = False }
 
-data Option = Input String
+data Option = Help
+            | Input String
             | Output String
             | Format TTCFormat
             | Erase EraseTag
             | JQ
 
-applyOption : Option -> PreConfig -> PreConfig
+applyOption : Option -> Options -> Options
+applyOption Help           = { help   := True }
 applyOption (Input fname)  = { input  := Just fname }
 applyOption (Output fname) = { output := Just fname }
 applyOption (Format fmt)   = { format := Just fmt }
 applyOption (Erase tag)    = { erase  $= (tag ::) }
 applyOption JQ             = { jq     := True }
 
-createPreConfig : List Option -> PreConfig
-createPreConfig = foldl (flip applyOption) initPreConfig
+applyOptions : List Option -> Options
+applyOptions = foldl (flip applyOption) initOptions
 
 predictFormat : String -> TTCFormat
 predictFormat fname = case extension fname of
@@ -43,8 +52,8 @@ predictFormat fname = case extension fname of
   Just "ttm" => TTM
   ext        => Unknown ext
 
-checkConfig : PreConfig -> Either ConverterError Config
-checkConfig config = do
+checkConvertConfig : Options -> Either ConverterError ConvertConfig
+checkConvertConfig config = do
   let Just input = config.input
     | Nothing => Left MissingInputFile
   let output = case config.output of
@@ -54,26 +63,38 @@ checkConfig config = do
                   Nothing => predictFormat input
                   Just f  => f
   let erase = nub config.erase
-  pure $ MkConfig input output format erase config.jq
+  pure $ MkConvertConfig input output format erase config.jq
+
+checkConfig : Options -> Either ConverterError Command
+checkConfig config =
+  if config.help
+     then pure Help
+     else Convert <$> checkConvertConfig config
+
 
 descs : List $ OptDescr Option
 descs =
-  [ MkOpt ['i'] ["input"]    (ReqArg Input  "<file>")  "Input file name"
-  , MkOpt ['o'] ["output"]   (ReqArg Output "<file>")  "Output file name"
-  , MkOpt []    ["ttc"]      (NoArg $ Format TTC)      "TTC format"
-  , MkOpt []    ["ttm"]      (NoArg $ Format TTM)      "TTM format"
-  , MkOpt []    ["erase-fc"] (NoArg $ Erase FCTag)     "Do not write FC in JSON"
-  , MkOpt []    ["erase-mn"] (NoArg $ Erase MNTag)     "Do not write MN indexes in JSON"
-  , MkOpt []    ["erase-bf"] (NoArg $ Erase BufferTag) "Do not write buffer data in JSON"
-  , MkOpt []    ["jq"]       (NoArg $ JQ)              "Use jq to format JSON"
+  [ MkOpt ['?', 'h'] ["help"]     (NoArg Help)              "Show help"
+  , MkOpt ['i']      ["input"]    (ReqArg Input  "<file>")  "Input file name"
+  , MkOpt ['o']      ["output"]   (ReqArg Output "<file>")  "Output file name"
+  , MkOpt []         ["ttc"]      (NoArg $ Format TTC)      "TTC format"
+  , MkOpt []         ["ttm"]      (NoArg $ Format TTM)      "TTM format"
+  , MkOpt []         ["erase-fc"] (NoArg $ Erase FCTag)     "Do not write FC in JSON"
+  , MkOpt []         ["erase-mn"] (NoArg $ Erase MNTag)     "Do not write MN indexes in JSON"
+  , MkOpt []         ["erase-bf"] (NoArg $ Erase BufferTag) "Do not write buffer data in JSON"
+  , MkOpt []         ["jq"]       (NoArg $ JQ)              "Use jq to format JSON"
   ]
 
 export
-getConfig : HasIO io => io (Either ConverterError Config)
-getConfig = do
+usage : String
+usage = usageInfo "Usage: ttc-converter [options] <file>\n\nOptions:" descs
+
+export
+getCommand : HasIO io => io (Either ConverterError Command)
+getCommand = do
   (_ :: args) <- getArgs
     | [] => pure $ Left EmptyArguments
   let (MkResult opts [] [] []) = getOpt (ReturnInOrder Input) descs args
     | _ => pure $ Left InvalidOptions
-  let config = createPreConfig opts
+  let config = applyOptions opts
   pure $ checkConfig config

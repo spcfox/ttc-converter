@@ -6,12 +6,20 @@ import TTCConverter.IO
 
 import System
 
-main : IO ()
-main = do
-  Right config <- getConfig
-    | Left err => die $ show err
+showHelp : HasIO io => io ()
+showHelp = putStrLn usage
+
+handleTTC : HasIO io => ConvertConfig -> io ()
+handleTTC config = do
   Right () <- mkParentDir $ config.output
     | Left err => die $ show err
   Right () <- convert config
     | Left err => die $ show err
   pure ()
+
+handleCommand : HasIO io => Command -> io ()
+handleCommand Help             = showHelp
+handleCommand (Convert config) = handleTTC config
+
+main : IO ()
+main = getCommand >>= either (die . show) handleCommand

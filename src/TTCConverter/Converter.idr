@@ -34,14 +34,14 @@ convertTTM : Converter
 convertTTM = mkConverter readTTM
 
 export
-convert : HasIO io => Config -> io (Either ConverterError ())
-convert (MkConfig input output format erase jq) = do
-  converter <- case format of TTC => pure convertTTC
-                              TTM => pure convertTTM
-                              Unknown ext => do -- TODO: Show warning
-                                                pure convertTTC
-  Right () : Either _ () <- converter (map show erase) input output
+convert : HasIO io => ConvertConfig -> io (Either ConverterError ())
+convert config = do
+  converter <- case config.format of TTC => pure convertTTC
+                                     TTM => pure convertTTM
+                                     Unknown ext => do -- TODO: Show warning
+                                                       pure convertTTC
+  Right () : Either _ () <- converter (map show config.erase) config.input config.output
     | Left err => pure $ Left err
-  if jq
-     then formatJSON output
+  if config.jq
+     then formatJSON config.output
      else pure $ Right ()

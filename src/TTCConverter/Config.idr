@@ -22,10 +22,14 @@ public export
 data TTCFormat = TTC | TTM | Unknown (Maybe String)
 
 public export
-record Config where
-  constructor MkConfig
+record ConvertConfig where
+  constructor MkConvertConfig
   input  : String
   output : String
   format : TTCFormat
   erase  : List EraseTag
   jq     : Bool
+
+public export
+data Command = Help
+             | Convert ConvertConfig
