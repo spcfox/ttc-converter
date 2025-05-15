@@ -11,8 +11,8 @@ license = "CC0-1.0"
 sourcedir = "src"
 
 depends = idris2
-        , contrib
         , getopts
+        , filepath
         , json
 
 main = TTCConverter.Main

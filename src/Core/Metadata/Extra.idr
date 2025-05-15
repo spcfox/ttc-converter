@@ -5,12 +5,13 @@ import Core.Core
 import Core.Binary
 import public Core.Metadata
 
+import Data.FilePath
 import System.File
 
 export
-readTTM : String -> Core TTMFile
+readTTM : FilePath -> Core TTMFile
 readTTM file = do
-  Right buffer <- coreLift $ readFromFile file
-    | Left err => throw (InternalError (file ++ ": " ++ show err))
+  Right buffer <- coreLift $ readFromFile $ interpolate file
+    | Left err => throw (InternalError ("\{file}: \{show err}"))
   bin <- newRef Prims.Bin buffer
   fromBuf bin

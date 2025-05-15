@@ -10,6 +10,7 @@ import public JSON.ToJSON
 
 import public Core.Binary.JSON
 
+import Data.FilePath
 import System.File
 
 %hide Text.ParseError.Bin
@@ -50,13 +51,13 @@ readTTCFile file b
                        pns rws prims foreignImpl nds cgds trans fexp ex)
 
 export
-readTTC : TTC extra => String -> Core (TTCFile extra)
+readTTC : TTC extra => FilePath -> Core (TTCFile extra)
 readTTC file = do
-  Right buffer <- coreLift $ readFromFile file
-    | Left err => throw (InternalError (file ++ ": " ++ show err))
+  Right buffer <- coreLift $ readFromFile $ interpolate file
+    | Left err => throw (InternalError ("\{file}: \{show err}"))
   bin <- newRef Prims.Bin buffer
-  readTTCFile file bin
+  readTTCFile (interpolate file) bin
 
 export
-writeJSON : Encoder v -> HasIO io => ToJSON a => String -> a -> io (Either FileError ())
-writeJSON _ file val = writeFile file (encodeVia v val)
+writeJSON : Encoder v -> HasIO io => ToJSON a => FilePath -> a -> io (Either FileError ())
+writeJSON _ file val = writeFile (interpolate file) (encodeVia v val)

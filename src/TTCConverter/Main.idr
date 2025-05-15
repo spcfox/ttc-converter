@@ -4,6 +4,7 @@ import TTCConverter.Converter
 import TTCConverter.CommandLine
 import TTCConverter.IO
 
+import Data.FilePath
 import System
 
 showHelp : HasIO io => io ()
@@ -11,7 +12,7 @@ showHelp = putStrLn usage
 
 handleTTC : HasIO io => ConvertConfig -> io ()
 handleTTC config = do
-  Right () <- mkParentDir $ config.output
+  Right () <- maybe (pure $ Right ()) mkDir $ parentDir config.output
     | Left err => die $ show err
   Right () <- convert config
     | Left err => die $ show err

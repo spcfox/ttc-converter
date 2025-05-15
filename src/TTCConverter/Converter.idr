@@ -11,14 +11,15 @@ import TTCConverter.Error
 import TTCConverter.IO
 import TTCConverter.JSON.Encoder.Erasing
 
+import Data.FilePath
 import System
 
 public export
 0 Converter : Type
-Converter = forall io. HasIO io => (erase : List String) -> (input, output : String) -> io (Either ConverterError ())
+Converter = forall io. HasIO io => (erase : List String) -> (input, output : FilePath) -> io (Either ConverterError ())
 
 export
-mkConverter : ToJSON a => (String -> Core a) -> Converter
+mkConverter : ToJSON a => (FilePath -> Core a) -> Converter
 mkConverter read erase input output
   = liftIO $ coreRun (read input) (pure . Left . CoreError) $ \val =>
       do Right () <- writeJSON (Erasing erase) output val

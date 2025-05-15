@@ -1,8 +1,9 @@
 module TTCConverter.CommandLine
 
+import Data.FilePath
+import Data.Either
 import Data.List
 import System
-import System.Path
 import System.GetOpts
 
 import public TTCConverter.Config
@@ -46,19 +47,23 @@ applyOption JQ             = { jq     := True }
 applyOptions : List Option -> Options
 applyOptions = foldl (flip applyOption) initOptions
 
-predictFormat : String -> TTCFormat
+predictFormat : FilePath -> TTCFormat
 predictFormat fname = case extension fname of
   Just "ttc" => TTC
   Just "ttm" => TTM
-  ext        => Unknown ext
+  ext        => Unknown $ interpolate <$> ext
+
+parseFile : String -> Either ConverterError FilePath
+parseFile fname = maybeToEither (InvalidFilePath fname) $ parse fname
 
 checkConvertConfig : Options -> Either ConverterError ConvertConfig
 checkConvertConfig config = do
-  let Just input = config.input
-    | Nothing => Left MissingInputFile
-  let output = case config.output of
-                  Nothing => input ++ ".json"
-                  Just o  => o
+  input <- case config.input of
+    Just f  => parseFile f
+    Nothing => Left MissingInputFile
+  output <- case config.output of
+    Just f  => parseFile f
+    Nothing => pure $ input <.> "json"
   let format = case config.format of
                   Nothing => predictFormat input
                   Just f  => f
@@ -70,7 +75,6 @@ checkConfig config =
   if config.help
      then pure Help
      else Convert <$> checkConvertConfig config
-
 
 descs : List $ OptDescr Option
 descs =
