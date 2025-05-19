@@ -18,33 +18,33 @@ import System.File
 export
 readTTCFile : TTC extra => String -> Ref Bin Binary -> Core (TTCFile extra)
 readTTCFile file b
-  = do hdr <- fromBuf b
+  = do hdr <- fromBuf
        when (hdr /= "TT2") $
          corrupt ("TTC header in " ++ file ++ " " ++ show hdr)
        ver <- fromBuf @{Wasteful} b
        checkTTCVersion file ver ttcVersion
-       totalReq <- fromBuf b
-       sourceFileHash <- fromBuf b
-       ifaceHash <- fromBuf b
-       importHashes <- fromBuf b
-       incData <- fromBuf b
-       imp <- fromBuf b
-       ex <- fromBuf b
-       defs <- fromBuf b
-       uholes <- fromBuf b
-       autohs <- fromBuf b
-       typehs <- fromBuf b
-       nextv <- fromBuf b
-       cns <- fromBuf b
-       nns <- fromBuf b
-       pns <- fromBuf b
-       rws <- fromBuf b
-       prims <- fromBuf b
-       foreignImpl <- fromBuf b
-       nds <- fromBuf b
-       cgds <- fromBuf b
-       trans <- fromBuf b
-       fexp <- fromBuf b
+       totalReq <- fromBuf
+       sourceFileHash <- fromBuf
+       ifaceHash <- fromBuf
+       importHashes <- fromBuf
+       incData <- fromBuf
+       imp <- fromBuf
+       ex <- fromBuf
+       defs <- fromBuf
+       uholes <- fromBuf
+       autohs <- fromBuf
+       typehs <- fromBuf
+       nextv <- fromBuf
+       cns <- fromBuf
+       nns <- fromBuf
+       pns <- fromBuf
+       rws <- fromBuf
+       prims <- fromBuf
+       foreignImpl <- fromBuf
+       nds <- fromBuf
+       cgds <- fromBuf
+       trans <- fromBuf
+       fexp <- fromBuf
        pure (MkTTCFile ver totalReq
                        sourceFileHash ifaceHash importHashes incData
                        defs uholes autohs typehs imp nextv cns nns

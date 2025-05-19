@@ -14,4 +14,4 @@ readTTM file = do
   Right buffer <- coreLift $ readFromFile $ interpolate file
     | Left err => throw (InternalError ("\{file}: \{show err}"))
   bin <- newRef Prims.Bin buffer
-  fromBuf bin
+  fromBuf
